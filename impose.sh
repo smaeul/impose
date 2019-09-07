@@ -182,7 +182,8 @@ impose_modules() {
             debug "${MODULE}: Running post-apply script"
             "${MODSRC}/post"
          fi
-      ) || {
+      ) &
+      wait $! || {
          warn "Failed to impose module '${MODULE}'"
          break
       }
