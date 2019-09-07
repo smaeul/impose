@@ -105,6 +105,7 @@ restarting services.
 
 The following environment variables will be available to these scripts:
 - `IMPOSE`: a non-empty string
+- `LIB`: the path to a shell script containing library functions
 - `MODSRC`: the path of the module source directory, with no trailing slash
 - `MODULE`: the name of the module
 - `NO_ACTION`: a positive integer if the script should make no changes
