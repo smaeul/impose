@@ -104,5 +104,15 @@ removing or modifying existing files, installing packages, and starting or
 restarting services.
 
 The following environment variables will be available to these scripts:
-- `IMPOSE`: will be a non-empty string
-- `MODULE`: will be the path to the module source directory
+- `IMPOSE`: a non-empty string
+- `MODSRC`: the path of the module source directory, with no trailing slash
+- `MODULE`: the name of the module
+- `NO_ACTION`: a positive integer if the script should make no changes
+- `ROOT`: the root of the destination directory hierarchy, with no trailing
+  slash (i.e. nominally the empty string)
+- `VERBOSE`: a positive integer if the script should print additional messages
+
+These scripts will run with a `umask` of `0577`, which means that files and
+directories created by these scripts will be inaccessible to other users by
+default. Script authors will need to manually set the permissions of each
+created file, or change the `umask` inside the script.
