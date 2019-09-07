@@ -1,4 +1,4 @@
-#!/bin/sh -eu
+#!/bin/sh -efu
 #
 # Copyright © 2019 Samuel Holland <samuel@sholland.org>
 # SPDX-License-Identifier: 0BSD
@@ -10,6 +10,8 @@
 #  - hostname(1)
 #
 
+# Module selected on the command line
+CMDLINE_MODULES=
 # Display messages in color when this is a positive integer
 COLOR=1
 # Software identifier
@@ -20,8 +22,6 @@ LIB=$PWD/lib.sh
 NO_ACTION=0
 # The root of the destination directory hierarchy
 ROOT=
-# Module selected on the command line
-USER_MODULE=
 # Print verbose messages when this is a positive integer
 VERBOSE=0
 # Software version
@@ -70,7 +70,39 @@ host_get_self() {
 
 # host_impose_modules HOST MODULE...
 host_impose_modules() {
-   die STUB host_impose_modules
+   local args
+   local host
+   local iter
+
+   host=$1
+   shift
+   if test "$COLOR" -gt 0; then
+      args=${args:+$args }-c
+   else
+      args=${args:+$args }-C
+   fi
+   iter=$NO_ACTION
+   while test "$iter" -gt 0; do
+      args=${args:+$args }-n
+      iter=$((iter-1))
+   done
+   iter=$VERBOSE
+   while test "$iter" -gt 0; do
+      args=${args:+$args }-v
+      iter=$((iter-1))
+   done
+   if test -n "$ROOT"; then
+      args=${args:+$args }-R${ROOT}
+   fi
+   for MODULE; do
+      args=${args:+$args }-m${MODULE}
+   done
+
+   notice "Running on ${HOST}"
+   debug "${HOST}: Synchronizing source files"
+   rsync -a --delete "${PWD}/" "${host}:/tmp/impose/"
+   debug "${HOST}: Running with args '${args}'"
+   ssh -ttq "$host" "cd /tmp/impose && ./impose.sh ${args}"
 }
 
 # impose_modules MODULE...
@@ -147,7 +179,7 @@ main() {
          V) version; return 0 ;;
          c) COLOR=1 ;;
          h) usage; return 0 ;;
-         m) USER_MODULE=$OPTARG ;;
+         m) CMDLINE_MODULES=${CMDLINE_MODULES:+$CMDLINE_MODULES }${OPTARG} ;;
          n) NO_ACTION=$((NO_ACTION+1)) ;;
          v) VERBOSE=$((VERBOSE+1)) ;;
          :) usage; die "Missing argument to -${OPTARG}" ;;
@@ -162,8 +194,8 @@ main() {
 
    if test "$#" -gt 0; then
       for HOST; do
-         if test -n "$USER_MODULE"; then
-            MODULES=$USER_MODULE
+         if test -n "$CMDLINE_MODULES"; then
+            MODULES=$CMDLINE_MODULES
          else
             if ! let CONFIG := host_get_config "$HOST"; then
                warn "Skipping ${HOST}: No configuration found"
@@ -173,27 +205,29 @@ main() {
                warn "Skipping ${HOST}: Bad configuration format"
                continue
             fi
+            if test -z "$MODULES"; then
+               warn "Skipping ${HOST}: Nothing to do"
+               continue
+            fi
          fi
          if test "${HOST%%.*}" = "localhost"; then
-            impose_modules "$MODULES"
+            impose_modules $MODULES
          else
-            host_impose_modules "$HOST" "$MODULES"
+            host_impose_modules "$HOST" $MODULES
          fi
       done
    else
-      if test -n "$USER_MODULE"; then
-         impose_modules "$USER_MODULE"
+      if test -n "$CMDLINE_MODULES"; then
+         MODULES=$CMDLINE_MODULES
       else
-         if let CONFIG := host_get_config "$(host_get_self)"; then
-            if ! let MODULES := config_parse "$CONFIG"; then
-               warn "Bad configuration format in '${CONFIG}'"
-               continue
-            fi
-            impose_modules "$MODULES"
-         else
+         if ! let CONFIG := host_get_config "$(host_get_self)"; then
             die "No configuration found for the local machine"
          fi
+         if ! let MODULES := config_parse "$CONFIG"; then
+            die "Bad configuration format in '${CONFIG}'"
+         fi
       fi
+      impose_modules $MODULES
    fi
 }
 
