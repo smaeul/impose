@@ -7,7 +7,12 @@
 #
 # Dependencies:
 #  - POSIX sh + local
+#
+# Optional dependencies:
 #  - hostname(1)
+#  - rsync(1)
+#  - ssh(1)
+#  - sudo(8)
 #
 
 # Module selected on the command line
@@ -70,12 +75,26 @@ host_get_self() {
 
 # host_impose_modules HOST MODULE...
 host_impose_modules() {
-   local args
+   local cmd
    local host
-   local iter
 
    host=$1
    shift
+
+   notice "Running on ${HOST}"
+   debug "${HOST}: Synchronizing source files"
+   rsync -a --delete "${PWD}/" "${host}:/tmp/impose/"
+
+   cmd="./impose.sh $(impose_cmdline "$@")"
+   debug "${HOST}: Running remote command '${cmd}'"
+   ssh -ttq "$host" "cd /tmp/impose && ${cmd}"
+}
+
+# impose_cmdline MODULE...
+impose_cmdline() {
+   local args
+   local iter
+
    if test "$COLOR" -gt 0; then
       args=${args:+$args }-c
    else
@@ -97,17 +116,18 @@ host_impose_modules() {
    for MODULE; do
       args=${args:+$args }-m${MODULE}
    done
-
-   notice "Running on ${HOST}"
-   debug "${HOST}: Synchronizing source files"
-   rsync -a --delete "${PWD}/" "${host}:/tmp/impose/"
-   debug "${HOST}: Running with args '${args}'"
-   ssh -ttq "$host" "cd /tmp/impose && ./impose.sh ${args}"
+   echo "$args"
 }
 
 # impose_modules MODULE...
 impose_modules() {
-   if test "$(id -u)" -ne 0 && test "$NO_ACTION" -le 0; then
+   if test "$NO_ACTION" -le 0 && test "$(id -u)" -ne 0; then
+      if test -n "$(command -v sudo)"; then
+         notice "Authenticating via sudo"
+         if sudo -u root "$0" $(impose_cmdline "$@"); then
+            return
+         fi
+      fi
       die "Must be running as root to modify the local machine. Try '-n'"
    fi
    for MODULE; do
