@@ -1,0 +1,4 @@
+/etc/localtime
+/etc/mtab
+/var/lock
+/var/run
