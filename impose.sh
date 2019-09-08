@@ -7,6 +7,7 @@
 #
 # Dependencies:
 #  - POSIX sh + local
+#  - readlink(1)
 #
 # Optional dependencies:
 #  - hostname(1)
@@ -166,16 +167,33 @@ impose_modules() {
                debug "${MODULE}: Updating file '${path}'"
                src=$MODSRC$path
                dest=$ROOT$path
-               if test -f "$dest" && cmp -s "$src" "$dest"; then
-                  tmp=$dest
+               tmp=${dest%/*}/..impose.$$.${dest##*/}
+               if test -h "$src" || test -h "$dest"; then
+                  # Don't copy if both are symlinks with the same destination
+                  if test "$(readlink "$src")" = "$(readlink "$dest")"; then
+                     tmp=$dest
+                  fi
                else
-                  test -d "$dest" && noact rmdir "$dest"
-                  tmp=${dest%/*}/..impose.$$.${dest##*/}
+                  # Don't copy if both are regular files with the same contents
+                  if test -f "$dest" && cmp -s "$src" "$dest"; then
+                     tmp=$dest
+                  fi
                fi
-               noact cp -P "$src" "$tmp"
+               test "$tmp" != "$dest" && noact cp -P "$src" "$tmp"
                noact chown -h "${user}:${group}" "$tmp"
+               # Cannot chmod symlinks on Linux
                test -h "$src" || noact chmod "$perms" "$tmp"
-               test "$tmp" != "$dest" && noact mv "$tmp" "$dest"
+               if test "$tmp" != "$dest"; then
+                  # Remove destination before mv if it is a dir or dir symlink
+                  if test -d "$dest"; then
+                     if test -h "$dest"; then
+                        noact rm "$dest"
+                     else
+                        noact rmdir "$dest"
+                     fi
+                  fi
+                  noact mv "$tmp" "$dest"
+               fi
             done < "${MODSRC}/files"
          fi
          if test -x "${MODSRC}/post"; then
