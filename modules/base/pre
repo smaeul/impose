@@ -1,1 +1,11 @@
-#!/bin/sh
+#!/bin/sh -efu
+
+. "$LIB"
+
+# Create log user (owns /var/log)
+if ! getent group log >/dev/null; then
+   noact groupadd -g 50 log
+fi
+if ! getent passwd log >/dev/null; then
+   noact useradd -c log -d /var/log -g log -M -s /bin/false -u 50 log
+fi
