@@ -112,8 +112,3 @@ The following environment variables will be available to these scripts:
 - `ROOT`: the root of the destination directory hierarchy, with no trailing
   slash (i.e. nominally the empty string)
 - `VERBOSE`: a positive integer if the script should print additional messages
-
-These scripts will run with a `umask` of `0577`, which means that files and
-directories created by these scripts will be inaccessible to other users by
-default. Script authors will need to manually set the permissions of each
-created file, or change the `umask` inside the script.

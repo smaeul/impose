@@ -140,7 +140,7 @@ impose_modules() {
          notice "Imposing module '${MODULE}'"
          if test -x "${MODSRC}/pre"; then
             debug "${MODULE}: Running pre-apply script"
-            "${MODSRC}/pre"
+	    (umask 0022; "${MODSRC}/pre")
          fi
          if test -f "${MODSRC}/directories"; then
             while read path perms user group; do
@@ -198,7 +198,7 @@ impose_modules() {
          fi
          if test -x "${MODSRC}/post"; then
             debug "${MODULE}: Running post-apply script"
-            "${MODSRC}/post"
+	    (umask 0022; "${MODSRC}/post")
          fi
       ) &
       wait $! || {
