@@ -1,0 +1,8 @@
+#!/bin/sh -efu
+
+. "$LIB"
+
+if ! test -e /etc/rc/.git; then
+   noact rm -rf /etc/rc
+   noact git clone https://github.com/smaeul/rc /etc/rc
+fi

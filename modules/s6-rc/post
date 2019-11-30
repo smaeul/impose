@@ -1,0 +1,11 @@
+#!/bin/sh -eu
+
+. "$LIB"
+
+# Do not touch anything if s6-rc is currently in use
+if test -e /run/s6-rc; then
+   warn "You must run /etc/rc/update manually!"
+else
+   test -e /etc/rc/compiled && noact rm -r /etc/rc/compiled*
+   noact /etc/rc/update
+fi
