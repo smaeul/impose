@@ -1,0 +1,36 @@
+#!/bin/sh -eu
+
+. "$LIB"
+
+sparse_clone() {
+   local dir uri
+   uri=$1
+   dir=$2
+
+   mkdir -p "$dir"
+   git -C "$dir" init --template=/var/empty
+   git -C "$dir" config core.sparseCheckout true
+   mkdir -p "${dir}/.git/info"
+   printf '%s\n' > "${dir}/.git/info/sparse-checkout" \
+      '.gitignore' \
+      'eclass/' \
+      'metadata/' \
+      'profiles/'
+   git -C "$dir" remote add origin "$uri"
+   git -C "$dir" fetch origin
+   git -C "$dir" checkout master
+}
+
+if ! test -e /etc/portage/.git; then
+   noact rm -rf /etc/portage
+   noact git clone https://github.com/smaeul/portage /etc/portage
+fi
+
+for repo in /etc/portage/repos.conf/*; do
+   test -f "$repo" || continue
+   dir=$(grep '^location' "$repo")
+   dir=${dir##* }
+   uri=$(grep '^sync-uri' "$repo")
+   uri=${uri##* }
+   test -d "${dir}/.git" || noact sparse_clone "$uri" "$dir"
+done
