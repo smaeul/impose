@@ -1,0 +1,5 @@
+/etc/bash/bashrc.d/aliases	0755	root	root
+/etc/issue			0644	root	root
+/etc/sudoers			0440	root	root
+/etc/tmux.conf			0644	root	root
+/etc/vim/vimrc.local		0644	root	root

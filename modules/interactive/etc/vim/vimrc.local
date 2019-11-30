@@ -1,0 +1,9 @@
+set background=dark
+set fileencodings=ucs-bom,utf-8,latin1
+set fileformat=unix
+set foldlevelstart=1
+set history=100
+set ruler
+
+filetype plugin indent on
+syntax on

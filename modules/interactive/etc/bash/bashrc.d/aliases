@@ -1,0 +1,16 @@
+# /etc/bash/bashrc.d/aliases: system-wide shell aliases
+
+alias calc='python3 -ic "from math import *; from random import *"'
+alias cpufreq='sort -u /sys/bus/cpu/devices/*/cpufreq/scaling_cur_freq'
+alias df='df -h'
+alias diff='git diff --no-index'
+alias du='du -h'
+alias egrep='grep -E --color=auto --exclude-dir=.git'
+alias fgrep='grep -F --color=auto --exclude-dir=.git'
+alias grep='grep --color=auto --exclude-dir=.git'
+alias la='ls -Al'
+alias ll='ls -l'
+alias logread='pipeline tail -F -n100 /var/log/*/current /run/uncaught-logs/current "" s6-tai64nlocal'
+alias ls='ls --color=auto'
+alias lsdsk='lsblk -do NAME,TRAN,HCTL,TYPE,SIZE,VENDOR,MODEL,REV,SERIAL'
+alias rm='rm --one-file-system'
