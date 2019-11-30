@@ -1,4 +1,6 @@
 #!/bin/sh -efu
 
+. "$LIB"
+
 # There is an extra line in the package versus the installation media
-rm -f '/etc/apk/keys/packages@adelielinux.org.pub.apk-new'
+noact rm -f '/etc/apk/keys/packages@adelielinux.org.pub.apk-new'
