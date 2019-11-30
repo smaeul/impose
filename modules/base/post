@@ -1,1 +1,7 @@
-#!/bin/sh
+#!/bin/sh -efu
+
+. "$LIB"
+
+# Sort /etc/{group,passwd}
+noact grpck -s
+noact pwck -s
