@@ -134,7 +134,7 @@ impose_modules() {
    for MODULE; do
       (
          MODSRC=${PWD}/modules/${MODULE}
-         export IMPOSE MODSRC MODULE NO_ACTION ROOT VERBOSE
+         export COLOR IMPOSE LIB MODSRC MODULE NO_ACTION ROOT VERBOSE
          umask 0577
          test -d "$MODSRC" || die "Module '${MODULE}' does not exist"
          notice "Imposing module '${MODULE}'"
