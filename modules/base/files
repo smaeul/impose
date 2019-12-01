@@ -1,4 +1,5 @@
 /etc/localtime
+/etc/motd
 /etc/mtab
 /var/lock
 /var/run
